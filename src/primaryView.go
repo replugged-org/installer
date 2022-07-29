@@ -8,17 +8,56 @@ import (
 )
 
 func (app *UpApplication) ShowPrimaryView() {
-	slots := []framework.FlexboxSlot{}
-
-	slots = append(slots, framework.FlexboxSlot{
-		Element: framework.NewUILabelPtr(integration.NewTextTypeChunk("Welcome to the Replugged installer!", design.GlobalFont), 0xFFFFFFFF, 0, frenyard.Alignment2i{}),
-		Grow:    1,
-	})
+	slots := []framework.FlexboxSlot{
+		{
+			Grow: 1,
+		},
+		{
+			Element: framework.NewUILabelPtr(
+				integration.NewTextTypeChunk("Welcome to the Replugged installer!", design.GlobalFont),
+				0xFFFFFFFF,
+				0,
+				frenyard.Alignment2i{},
+			),
+		},
+		{
+			Basis:  frenyard.Scale(design.DesignScale, 32),
+			Shrink: 1,
+		},
+		{
+			Element: framework.NewUIFlexboxContainerPtr(framework.FlexboxContainer{
+				DirVertical: false,
+				Slots: []framework.FlexboxSlot{
+					{
+						Grow: 1,
+					},
+					{
+						Element: design.ButtonWarningFixAction("test", func() {}),
+						Shrink:  1,
+					},
+					{
+						Basis:  frenyard.Scale(design.DesignScale, 32),
+						Shrink: 1,
+					},
+					{
+						Element: design.ButtonWarningFixAction("test", func() {}),
+						Shrink:  1,
+					},
+					{
+						Grow: 1,
+					},
+				},
+			}),
+		},
+		{
+			Grow: 1,
+		},
+	}
 
 	app.Teleport(design.LayoutDocument(design.Header{
 		Title: "Replugged Installer",
 	}, framework.NewUIFlexboxContainerPtr(framework.FlexboxContainer{
 		DirVertical: true,
 		Slots:       slots,
-	}), true));
+	}), true))
 }
