@@ -55,7 +55,13 @@ func (app *UpApplication) ShowPrimaryView() {
 	}
 
 	app.Teleport(design.LayoutDocument(design.Header{
-		Title:       "Replugged Installer",
+		Title: "Replugged Installer",
+		Back: func() {
+			app.CachedPrimaryView = nil
+			app.GSLeftwards()
+			app.ResetWithDiscordInstance(false, "computer://")
+		},
+		BackIcon:    design.BackIconID,
 		ForwardIcon: design.MenuIconID,
 		Forward: func() {
 			app.GSRightwards()
