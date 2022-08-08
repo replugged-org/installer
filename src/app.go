@@ -3,9 +3,11 @@ package src
 import (
 	"github.com/lexisother/frenyard"
 	"github.com/lexisother/frenyard/framework"
+	"github.com/replugged-org/installer/middle"
 )
 
 type UpApplication struct {
+	Config            middle.Config
 	MainContainer     *framework.UISlideTransitionContainer
 	Window            frenyard.Window
 	UpQueued          chan func()

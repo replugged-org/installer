@@ -4,6 +4,7 @@ import (
 	"github.com/lexisother/frenyard"
 	"github.com/lexisother/frenyard/design"
 	"github.com/lexisother/frenyard/framework"
+	"github.com/replugged-org/installer/middle"
 	"github.com/replugged-org/installer/src"
 )
 
@@ -18,6 +19,7 @@ func main() {
 	design.Setup(frenyard.InferScale(wnd))
 	wnd.SetSize(design.SizeWindow)
 	app := &src.UpApplication{
+		Config:           middle.ReadConfig(),
 		MainContainer:    slideContainer,
 		Window:           wnd,
 		UpQueued:         make(chan func(), 16),
