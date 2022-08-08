@@ -32,7 +32,7 @@ func (app *UpApplication) ShowPrimaryView() {
 						Grow: 1,
 					},
 					{
-						Element: design.ButtonWarningFixAction("test", func() {}),
+						Element: design.ButtonAction(design.ThemeOkActionButton, "Install", func() {}),
 						Shrink:  1,
 					},
 					{
@@ -40,7 +40,7 @@ func (app *UpApplication) ShowPrimaryView() {
 						Shrink: 1,
 					},
 					{
-						Element: design.ButtonWarningFixAction("test", func() {}),
+						Element: design.ButtonAction(design.ThemeRemoveActionButton, "Uninstall", func() {}),
 						Shrink:  1,
 					},
 					{
