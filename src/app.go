@@ -8,6 +8,7 @@ import (
 
 type UpApplication struct {
 	Config            middle.Config
+	DiscordInstance   *middle.DiscordInstance
 	MainContainer     *framework.UISlideTransitionContainer
 	Window            frenyard.Window
 	UpQueued          chan func()
