@@ -90,6 +90,17 @@ func (app *UpApplication) ShowInstanceFinder(locations []middle.DiscordInstance)
 			{
 				Basis: design.SizeMarginAroundEverything,
 			},
+			{
+				Element: design.ButtonBar([]framework.UILayoutElement{
+					design.ButtonAction(design.ThemeOkActionButton, "LOCATE MANUALLY", func() {
+						app.GSDownwards()
+						app.ShowDiscordFinder(func() {
+							app.GSUpwards()
+							app.ShowInstanceFinder(locations)
+						}, middle.BrowserVFSPathDefault)
+					}),
+				}),
+			},
 		},
 	})
 
