@@ -1,6 +1,9 @@
 package src
 
 import (
+	"os"
+	"path"
+
 	"github.com/lexisother/frenyard"
 	"github.com/lexisother/frenyard/design"
 	"github.com/lexisother/frenyard/framework"
@@ -8,6 +11,13 @@ import (
 )
 
 func (app *UpApplication) ShowPrimaryView() {
+	var installStatus string
+	if _, installedOrNot := os.Stat(path.Join(app.Config.DiscordPath, "app/plugged.txt")); installedOrNot == nil {
+		installStatus = "installed!"
+	} else {
+		installStatus = "not installed."
+	}
+
 	slots := []framework.FlexboxSlot{
 		{
 			Grow: 1,
@@ -15,6 +25,14 @@ func (app *UpApplication) ShowPrimaryView() {
 		{
 			Element: framework.NewUILabelPtr(
 				integration.NewTextTypeChunk("Welcome to the Replugged installer!", design.GlobalFont),
+				0xFFFFFFFF,
+				0,
+				frenyard.Alignment2i{},
+			),
+		},
+		{
+			Element: framework.NewUILabelPtr(
+				integration.NewTextTypeChunk("Replugged is currently: "+installStatus, design.GlobalFont),
 				0xFFFFFFFF,
 				0,
 				frenyard.Alignment2i{},
