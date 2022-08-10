@@ -50,8 +50,14 @@ func (app *UpApplication) ShowPrimaryView() {
 						Grow: 1,
 					},
 					{
-						Element: design.ButtonAction(design.ThemeOkActionButton, "Install", func() {}),
-						Shrink:  1,
+						Element: design.ButtonAction(design.ThemeOkActionButton, "Install", func() {
+							app.GSRightwards()
+							app.ShowManagerView(false, func() {
+								app.GSLeftwards()
+								app.ShowPrimaryView()
+							})
+						}),
+						Shrink: 1,
 					},
 					{
 						Basis:  frenyard.Scale(design.DesignScale, 32),
