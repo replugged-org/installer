@@ -2,7 +2,11 @@ module github.com/replugged-org/installer
 
 go 1.17
 
-require github.com/lexisother/frenyard v0.0.0-20211013151416-ef4fefd2504e
+require (
+	github.com/ProtonMail/go-appdir v1.1.0
+	github.com/go-git/go-git/v5 v5.4.2
+	github.com/lexisother/frenyard v0.0.0-20211013151416-ef4fefd2504e
+)
 
 require (
 	github.com/Microsoft/go-winio v0.4.16 // indirect
@@ -11,7 +15,6 @@ require (
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
-	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect

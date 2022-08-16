@@ -3,6 +3,7 @@ package middle
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/ProtonMail/go-appdir"
 	"os"
 	"path/filepath"
 )
@@ -17,6 +18,17 @@ func getConfigPath() string {
 		cfg = ""
 	}
 	return filepath.Join(cfg, "replugged-installer.json")
+}
+
+func GetDataPath() string {
+	dirs := appdir.New("replugged-installer")
+	data := dirs.UserData()
+
+	if err := os.MkdirAll(data, 0755); err != nil {
+		panic(err)
+	}
+
+	return data
 }
 
 func ReadConfig() Config {

@@ -2,8 +2,11 @@ package src
 
 import (
 	"fmt"
+	"github.com/replugged-org/installer/middle"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-git/go-git/v5"
@@ -28,10 +31,10 @@ func showInstallScreen(app *UpApplication) {
 		app.ShowWaiter("Installing...", func(progress func(string)) {
 			log += "\nChecking for Replugged folder..."
 			progress(log)
-			replugged, _ := os.Stat(path.Join(os.Getenv("HOME"), ".local/share/replugged"))
+			replugged, _ := os.Stat(path.Join(middle.GetDataPath(), "repository"))
 			if replugged == nil {
 				log += "\nReplugged not found. Cloning Replugged..."
-				_, err := git.PlainClone(path.Join(os.Getenv("HOME"), ".local/share/replugged"), false, &git.CloneOptions{
+				_, err := git.PlainClone(path.Join(middle.GetDataPath(), "repository"), false, &git.CloneOptions{
 					URL:   "https://github.com/replugged-org/replugged",
 					Depth: 1,
 				})
@@ -57,7 +60,7 @@ func showInstallScreen(app *UpApplication) {
 			packageJson.WriteString(`{"name": "plug","main":"index.js"}`)
 			log += "\nWriting index.js..."
 			progress(log)
-			index.WriteString(fmt.Sprintf("require(`%s/src/patcher.js`)", os.Getenv("HOME")+"/.local/share/replugged"))
+			index.WriteString(fmt.Sprintf("require('%s')", strings.ReplaceAll(filepath.FromSlash(middle.GetDataPath()+"/repository/src/patcher.js"), "\\", "\\\\")))
 			if errorLog != "Errors:" {
 				log += "\n-- Errors occurred during installation. --\n" + errorLog
 			} else {
