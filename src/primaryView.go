@@ -117,7 +117,7 @@ func (app *UpApplication) ShowPrimaryView() {
 			{
 				Element: design.InformationPanel(design.InformationPanelDetails{
 					Text:       v.Text,
-					ActionText: "FIX",
+					ActionText: v.ActionText,
 					Action:     fixAction,
 				}),
 			},

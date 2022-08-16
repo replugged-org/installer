@@ -1,6 +1,11 @@
 package middle
 
-import "os/exec"
+import (
+	"io/ioutil"
+	"net/http"
+	"os/exec"
+	"strings"
+)
 
 type WarningID int
 
@@ -14,9 +19,26 @@ const (
 )
 
 type Warning struct {
-	Text      string
-	Action    WarningID
-	Parameter string
+	Text       string
+	Action     WarningID
+	ActionText string
+	Parameter  string
+}
+
+var remoteVersion string
+var hasAlreadyCheckedUpdate = false
+
+func checkUpdate() {
+	if !hasAlreadyCheckedUpdate {
+		hasAlreadyCheckedUpdate = true
+	} else {
+		return
+	}
+
+	res, _ := http.Get("https://raw.githubusercontent.com/replugged-org/installer/main/middle/version.go")
+
+	data, _ := ioutil.ReadAll(res.Body)
+	remoteVersion = strings.Trim(string(data)[33:38], "\r\n")
 }
 
 var npm = false
@@ -37,14 +59,27 @@ func checkNpm() {
 func FindWarnings(config Config) []Warning {
 	warnings := []Warning{}
 
+	if !hasAlreadyCheckedUpdate {
+		checkUpdate()
+	}
+	if remoteVersion != version {
+		warnings = append(warnings, Warning{
+			Text:       "A new version of the installer is available! (v" + remoteVersion + ")",
+			Action:     URLAndCloseWarningID,
+			ActionText: "UPDATE",
+			Parameter:  "https://github.com/replugged-org/installer/releases",
+		})
+	}
+
 	if !hasAlreadyCheckedNpm {
 		checkNpm()
 	}
 	if !npm {
 		warnings = append(warnings, Warning{
-			Text:      "NPM is not installed.",
-			Action:    URLAndCloseWarningID,
-			Parameter: "https://docs.npmjs.com/downloading-and-installing-node-js-and-npm",
+			Text:       "NPM is not installed.",
+			Action:     URLAndCloseWarningID,
+			ActionText: "INSTALL",
+			Parameter:  "https://docs.npmjs.com/downloading-and-installing-node-js-and-npm",
 		})
 	}
 
