@@ -1,11 +1,9 @@
 package src
 
 import (
-	"fmt"
 	"github.com/replugged-org/installer/middle"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 
 	"github.com/lexisother/frenyard"
@@ -36,8 +34,6 @@ func (app *UpApplication) ShowPrimaryView() {
 	} else {
 		installStatus = "not installed."
 	}
-
-	fmt.Println(filepath.FromSlash(middle.GetDataPath() + "/repository"))
 
 	slots := []framework.FlexboxSlot{
 		{

@@ -51,7 +51,9 @@ func checkNpm() {
 		return
 	}
 
-	if _, err := exec.LookPath("npm"); err == nil {
+	cmd := exec.Command("npm", "help")
+	err := cmd.Run()
+	if err == nil {
 		npm = true
 	}
 }
