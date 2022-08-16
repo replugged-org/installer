@@ -1,6 +1,6 @@
 module github.com/replugged-org/installer
 
-go 1.18
+go 1.19
 
 require (
 	github.com/ProtonMail/go-appdir v1.1.0
