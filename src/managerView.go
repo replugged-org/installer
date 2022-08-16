@@ -2,14 +2,15 @@ package src
 
 import (
 	"fmt"
+	"github.com/go-git/go-git/v5"
 	"github.com/replugged-org/installer/middle"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/go-git/go-git/v5"
 	"github.com/lexisother/frenyard/framework"
 )
 
@@ -29,21 +30,6 @@ func showInstallScreen(app *UpApplication) {
 		log := "--Log started at " + time.Now().Format(time.RFC1123) + " --"
 		errorLog := "Errors:"
 		app.ShowWaiter("Installing...", func(progress func(string)) {
-			log += "\nChecking for Replugged folder..."
-			progress(log)
-			replugged, _ := os.Stat(path.Join(middle.GetDataPath(), "repository"))
-			if replugged == nil {
-				log += "\nReplugged not found. Cloning Replugged..."
-				_, err := git.PlainClone(path.Join(middle.GetDataPath(), "repository"), false, &git.CloneOptions{
-					URL:   "https://github.com/replugged-org/replugged",
-					Depth: 1,
-				})
-
-				if err != nil {
-					errorLog += "\n  cloning Replugged: " + err.Error()
-				}
-			}
-
 			log += "\nChecking for app folder..."
 			progress(log)
 			resources, _ := os.Stat(path.Join(app.Config.DiscordPath, "app"))
@@ -61,6 +47,39 @@ func showInstallScreen(app *UpApplication) {
 			log += "\nWriting index.js..."
 			progress(log)
 			index.WriteString(fmt.Sprintf("require('%s')", strings.ReplaceAll(filepath.FromSlash(middle.GetDataPath()+"/repository/src/patcher.js"), "\\", "\\\\")))
+
+			log += "\nChecking for Replugged folder..."
+			progress(log)
+			replugged, _ := os.Stat(path.Join(middle.GetDataPath(), "repository"))
+			if replugged == nil {
+				log += "\nReplugged not found. Cloning Replugged..."
+				progress(log)
+				_, err := git.PlainClone(path.Join(middle.GetDataPath(), "repository"), false, &git.CloneOptions{
+					URL:   "https://github.com/replugged-org/replugged",
+					Depth: 1,
+				})
+
+				if err != nil {
+					errorLog += "\n  cloning Replugged: " + err.Error()
+				}
+			}
+
+			replugged, _ = os.Stat(path.Join(middle.GetDataPath(), "repository"))
+			if replugged != nil {
+				if depFolder, _ := os.Stat(path.Join(middle.GetDataPath(), "repository", "node_modules")); depFolder == nil {
+					log += "\nInstalling dependencies... (this can take a while)"
+					progress(log)
+
+					cmd := exec.Command("npm", "i")
+					cmd.Dir = path.Join(middle.GetDataPath(), "repository")
+					_, err := cmd.Output()
+					if err != nil {
+						errorLog += "\n  installing dependencies: " + err.Error()
+						return
+					}
+				}
+			}
+
 			if errorLog != "Errors:" {
 				log += "\n-- Errors occurred during installation. --\n" + errorLog
 			} else {
@@ -70,8 +89,10 @@ func showInstallScreen(app *UpApplication) {
 		}, func() {
 			pluggedFile, _ := os.Create(path.Join(app.Config.DiscordPath, "app/plugged.txt"))
 			pluggedFile.WriteString("this file was added to indicate that replugged is installed here.")
+			app.GSInstant()
 			app.MessageBox("Install Complete", log, func() {
 				app.CachedPrimaryView = nil
+				app.GSLeftwards()
 				app.ShowPrimaryView()
 			})
 		})
