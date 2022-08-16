@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/lexisother/frenyard"
 	"github.com/lexisother/frenyard/design"
@@ -13,7 +14,22 @@ import (
 	"github.com/lexisother/frenyard/integration"
 )
 
+func If[T any](cond bool, vtrue, vfalse T) T {
+	if cond {
+		return vtrue
+	}
+	return vfalse
+}
+
 func (app *UpApplication) ShowPrimaryView() {
+	warnings := middle.FindWarnings(app.Config)
+	npm := true
+	for _, v := range warnings {
+		if strings.Contains(v.Text, "NPM") {
+			npm = false
+		}
+	}
+
 	var installStatus string
 	if _, installedOrNot := os.Stat(path.Join(app.Config.DiscordPath, "app/plugged.txt")); installedOrNot == nil {
 		installStatus = "installed!"
@@ -55,12 +71,14 @@ func (app *UpApplication) ShowPrimaryView() {
 						Grow: 1,
 					},
 					{
-						Element: design.ButtonAction(design.ThemeOkActionButton, "Install", func() {
-							app.GSRightwards()
-							app.ShowManagerView(false, func() {
-								app.GSLeftwards()
-								app.ShowPrimaryView()
-							})
+						Element: design.ButtonAction(If(npm, design.ThemeOkActionButton, design.ThemeImpossibleActionButton), "Install", func() {
+							if npm {
+								app.GSRightwards()
+								app.ShowManagerView(false, func() {
+									app.GSLeftwards()
+									app.ShowPrimaryView()
+								})
+							}
 						}),
 						Shrink: 1,
 					},
@@ -69,8 +87,11 @@ func (app *UpApplication) ShowPrimaryView() {
 						Shrink: 1,
 					},
 					{
-						Element: design.ButtonAction(design.ThemeRemoveActionButton, "Uninstall", func() {}),
-						Shrink:  1,
+						Element: design.ButtonAction(If(npm, design.ThemeRemoveActionButton, design.ThemeImpossibleActionButton), "Uninstall", func() {
+							if npm {
+							}
+						}),
+						Shrink: 1,
 					},
 					{
 						Grow: 1,
@@ -81,6 +102,26 @@ func (app *UpApplication) ShowPrimaryView() {
 		{
 			Grow: 1,
 		},
+	}
+
+	for _, v := range warnings {
+		fixAction := framework.ButtonBehavior(nil)
+		if v.Action == middle.URLAndCloseWarningID {
+			url := v.Parameter
+			fixAction = func() {
+				middle.OpenURL(url)
+				os.Exit(0)
+			}
+		}
+		slots = append([]framework.FlexboxSlot{
+			{
+				Element: design.InformationPanel(design.InformationPanelDetails{
+					Text:       v.Text,
+					ActionText: "FIX",
+					Action:     fixAction,
+				}),
+			},
+		}, slots...)
 	}
 
 	app.Teleport(design.LayoutDocument(design.Header{
