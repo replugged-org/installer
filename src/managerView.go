@@ -12,13 +12,18 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/replugged-org/installer/middle"
 
+	"github.com/lexisother/frenyard"
+	"github.com/lexisother/frenyard/design"
 	"github.com/lexisother/frenyard/framework"
+	"github.com/lexisother/frenyard/integration"
 )
 
 func (app *UpApplication) ShowManagerView(installed bool, back framework.ButtonBehavior) {
 	if !installed {
 		showInstallScreen(app)
-	}
+	} else {
+		showUninstallScreen(app, back)
+	} 
 }
 
 func showInstallScreen(app *UpApplication) {
@@ -103,5 +108,98 @@ func showInstallScreen(app *UpApplication) {
 				app.ShowPrimaryView()
 			})
 		})
+	}
+}
+
+func showUninstallScreen(app *UpApplication, back framework.ButtonBehavior) {
+	if _, err := os.Stat(path.Join(app.Config.DiscordPath, "app/plugged.txt")); err != nil {
+		app.MessageBox("Not installed!", "Replugged is not installed. Please install it before trying to remove it.", func () {
+			app.CachedPrimaryView = nil
+			app.ShowPrimaryView()
+		})
+	} else {
+		listSlots := []framework.FlexboxSlot{
+			{
+				Grow: 1,
+			},
+			{
+				Element: framework.NewUILabelPtr(integration.NewTextTypeChunk("Are you sure you want to uninstall Replugged?", design.GlobalFont), 0xFFFFFFFF, 0, frenyard.Alignment2i{}),
+			},
+			{
+				Basis: frenyard.Scale(design.DesignScale, 32),
+				Shrink: 1,
+			},
+			{
+				Element: framework.NewUIFlexboxContainerPtr(framework.FlexboxContainer{
+					DirVertical: false,
+					Slots: []framework.FlexboxSlot{
+						{
+							Grow: 1,
+						},
+						{
+							Element: design.ButtonAction(design.ThemeRemoveActionButton, "Uninstall", func() {
+								if _, err := os.Stat(path.Join(app.Config.DiscordPath, "app/plugged.txt")); err != nil {
+								} else {
+									log := "-- Log started at " + time.Now().Format(time.RFC1123) + " --"
+									errorLog := "Errors:"
+									app.ShowWaiter("Uninstalling...", func(progress func(string)) {
+										log += "\nDeleting the app directory..."
+										progress(log)
+										err := os.RemoveAll(path.Join(app.Config.DiscordPath, "app"))
+										if err != nil {
+											errorLog += "\n  failed deleting app directory: " + err.Error()
+										}
+										log += "\nDone! Checking if plug directory exists..."
+										progress(log)
+										if _, err := os.Stat(path.Join(app.Config.DiscordPath, "plug")); err == nil {
+											log += "\nRestoring the plug directory..."
+											progress(log)
+											err := os.Rename(path.Join(app.Config.DiscordPath, "plug"), path.Join(app.Config.DiscordPath, "app"))
+											if err != nil {
+												errorLog += "\n  failed restoring plug directory: " + err.Error()
+											} 
+										}
+
+										if errorLog != "Errors:" {
+											log += "\n-- Errors occurred during installation. --\n" + errorLog
+										} else {
+											log += "\n-- Complete; Restart your Discord client! --"
+										}
+										progress(log)
+									}, func() {
+										app.GSInstant()
+										app.MessageBox("Uninstall Complete", log, func() {
+											app.CachedPrimaryView = nil
+											app.GSRightwards()
+											app.ShowPrimaryView()
+										})
+									})
+								}
+							}),
+						},
+						{
+							Basis: frenyard.Scale(design.DesignScale, 32),
+						},
+						{
+							Element: design.ButtonAction(design.ThemeOkActionButton, "Cancel", back),
+						},
+						{
+							Grow: 1,
+						},
+					},
+				}),
+			},
+			{
+				Grow: 1,
+			},
+		}
+
+		app.Teleport(design.LayoutDocument(design.Header{
+			Title: "Replugged",
+			Back: back,
+		}, framework.NewUIFlexboxContainerPtr(framework.FlexboxContainer{
+			DirVertical: true,
+			Slots: listSlots,
+		}), true))
 	}
 }
