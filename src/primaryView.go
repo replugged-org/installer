@@ -1,10 +1,12 @@
 package src
 
 import (
-	"github.com/replugged-org/installer/middle"
+	"fmt"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/replugged-org/installer/middle"
 
 	"github.com/lexisother/frenyard"
 	"github.com/lexisother/frenyard/design"
@@ -20,6 +22,8 @@ func If[T any](cond bool, vtrue, vfalse T) T {
 }
 
 func (app *UpApplication) ShowPrimaryView() {
+	fmt.Println(middle.GetUserData())
+
 	warnings := middle.FindWarnings(app.Config)
 	npm := true
 	for _, v := range warnings {

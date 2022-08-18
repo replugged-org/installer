@@ -3,9 +3,14 @@ package middle
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/ProtonMail/go-appdir"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strconv"
+	"strings"
+
+	"github.com/ProtonMail/go-appdir"
 )
 
 type Config struct {
@@ -20,7 +25,40 @@ func getConfigPath() string {
 	return filepath.Join(cfg, "replugged-installer.json")
 }
 
+type UserData struct {
+	Name string
+	Ruid int
+	Rgid int
+}
+func GetUserData() *UserData {
+	cmd := exec.Command("logname")
+	outName, _:= cmd.Output()
+	name := strings.TrimSuffix(string(outName), "\n")
+
+	cmd = exec.Command("id", "-u", name)
+	outUid, _ := cmd.Output()
+	uid := strings.TrimSuffix(string(outUid), "\n")
+
+	cmd = exec.Command("id", "-g", name)
+	outGid, _ := cmd.Output()
+	gid := strings.TrimSuffix(string(outGid), "\n")
+
+	ruid, _ := strconv.Atoi(uid)
+	rgid, _ := strconv.Atoi(gid)
+	return &UserData{name, ruid, rgid}
+}
+
 func GetDataPath() string {
+	if runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
+		userData := GetUserData()
+		if userData.Name != "" {
+			usr := strings.TrimSuffix(string(userData.Name), "\n")
+			return fmt.Sprintf("/home/%s/.local/share/replugged-installer", usr)
+		} else {
+			return ""
+		}
+	}
+
 	dirs := appdir.New("replugged-installer")
 	data := dirs.UserData()
 
