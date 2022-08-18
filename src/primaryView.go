@@ -1,7 +1,6 @@
 package src
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -22,8 +21,6 @@ func If[T any](cond bool, vtrue, vfalse T) T {
 }
 
 func (app *UpApplication) ShowPrimaryView() {
-	fmt.Println(middle.GetUserData())
-
 	warnings := middle.FindWarnings(app.Config)
 	npm := true
 	for _, v := range warnings {

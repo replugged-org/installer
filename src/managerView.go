@@ -2,14 +2,15 @@ package src
 
 import (
 	"fmt"
-	"github.com/go-git/go-git/v5"
-	"github.com/replugged-org/installer/middle"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/replugged-org/installer/middle"
 
 	"github.com/lexisother/frenyard/framework"
 )
@@ -54,13 +55,16 @@ func showInstallScreen(app *UpApplication) {
 			if replugged == nil {
 				log += "\nReplugged not found. Cloning Replugged..."
 				progress(log)
-				userData := middle.GetUserData()
-				// os.Mkdir(path.Join(middle.GetDataPath(), "repository"), 0777)
 				_, err := git.PlainClone(path.Join(middle.GetDataPath(), "repository"), false, &git.CloneOptions{
 					URL:   "https://github.com/replugged-org/replugged",
 					Depth: 1,
 				})
-				middle.ChownR(path.Join(middle.GetDataPath(), "repository"), userData.Ruid, userData.Rgid)
+
+				// We are running as root, so fix the file permissions
+				if middle.IsLinux() {
+					userData := middle.GetUserData()
+					middle.ChownR(path.Join(middle.GetDataPath(), "repository"), userData.Ruid, userData.Rgid)
+				}
 
 				if err != nil {
 					errorLog += "\n  cloning Replugged: " + err.Error()

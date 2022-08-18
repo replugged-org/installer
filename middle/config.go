@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -30,6 +29,7 @@ type UserData struct {
 	Ruid int
 	Rgid int
 }
+// GetUserData fetches chown-required userdata on Linux
 func GetUserData() *UserData {
 	cmd := exec.Command("logname")
 	outName, _:= cmd.Output()
@@ -49,7 +49,9 @@ func GetUserData() *UserData {
 }
 
 func GetDataPath() string {
-	if runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
+	// We LOVE platform-specific hacks.
+	// Fixes the running-as-root $HOME issue.
+	if IsLinux() {
 		userData := GetUserData()
 		if userData.Name != "" {
 			usr := strings.TrimSuffix(string(userData.Name), "\n")
