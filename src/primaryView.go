@@ -86,6 +86,11 @@ func (app *UpApplication) ShowPrimaryView() {
 					{
 						Element: design.ButtonAction(If(npm, design.ThemeRemoveActionButton, design.ThemeImpossibleActionButton), "Uninstall", func() {
 							if npm {
+								app.GSRightwards()
+								app.ShowManagerView(true, func() {
+									app.GSLeftwards()
+									app.ShowPrimaryView()
+								})
 							}
 						}),
 						Shrink: 1,
