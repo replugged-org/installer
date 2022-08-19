@@ -1,9 +1,12 @@
 package middle
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -51,10 +54,31 @@ func checkNpm() {
 		return
 	}
 
-	cmd := exec.Command("npm", "help")
-	err := cmd.Run()
-	if err == nil {
-		npm = true
+	var cmd *exec.Cmd
+	var err error
+	if runtime.GOOS == "darwin" {
+		cmd = exec.Command("zsh", "-c", "'which npm'")
+		err = cmd.Run()
+		if err == nil {
+			npm = true
+		} else {
+			fmt.Println("Error finding NPM (#1): " + err.Error())
+			fmt.Println("Trying again using brew...")
+			_, err := os.Stat("/opt/homebrew/bin/npm")
+			if err == nil {
+				npm = true
+			} else {
+				fmt.Println("Error finding NPM (#2): " + err.Error())
+			}
+		}
+	} else {
+		cmd = exec.Command("npm", "help")
+		err = cmd.Run()
+		if err == nil {
+			npm = true
+		} else {
+			fmt.Println("Error finding NPM: " + err.Error())
+		}
 	}
 }
 
