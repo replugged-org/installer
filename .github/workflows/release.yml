@@ -13,17 +13,27 @@ jobs:
 
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: "1.19"
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: Install Linux dependencies
         run: |
           sudo apt update
           sudo apt install -y wget pkg-config libsdl2-dev
+
       - name: Install Go dependencies
         run: go get -v
 
@@ -34,8 +44,9 @@ jobs:
         run: |
           chmod +x installer
           mv installer installer.Linux
+
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: installer-linux
           path: installer.Linux
@@ -45,12 +56,21 @@ jobs:
 
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: "1.19"
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/Library/Caches/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: Install dependencies
         run: brew install pkg-config sdl2
@@ -73,8 +93,9 @@ jobs:
           wget https://public.alyxia.dev/replugged/icon.icns -O Installer.app/Contents/Resources/icon.icns
           zip -r Installer.MacOS.zip Installer.app
           mv Installer.MacOS.zip installer.MacOS.zip
+
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: installer-macos
           path: installer.MacOS.zip
@@ -84,12 +105,21 @@ jobs:
 
     steps:
       - name: Install Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: "1.19"
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~\AppData\Local\go-build
+            ~\go\pkg\mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
@@ -100,20 +130,23 @@ jobs:
           pacman -S --noconfirm git mingw-w64-x86_64-gcc mingw-w64-x86_64-SDL2 mingw-w64-x86_64-go
           export GOROOT=/mingw64/lib/go
           export GOPATH=/mingw64
+
       - name: Install Go dependencies
         shell: msys2 {0}
         run: |
           export GOROOT=/mingw64/lib/go
           export GOPATH=/mingw64
           go get -v
+
       - name: Build
         shell: msys2 {0}
         run: |
           export GOROOT=/mingw64/lib/go
           export GOPATH=/mingw64
           CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags static -ldflags "-s -w -H=windowsgui"
+
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: installer-windows
           path: installer.exe
@@ -124,19 +157,19 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: installer-linux
           path: linux
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: installer-macos
           path: macos
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: installer-windows
           path: windows
@@ -144,14 +177,15 @@ jobs:
       - name: Get some values needed for the release
         id: release_values
         run: |
-          echo "::set-output name=date::$(date '+%Y-%m-%d')"
-          echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
+          echo "release_date=$(date '+%Y-%m-%d')" >> $GITHUB_ENV
+          echo "release_tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
       - name: Create the release
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.ALYX_TOKEN }}
         with:
-          name: ${{ steps.release_values.outputs.tag }}, ${{ steps.release_values.outputs.date }}
+          name: ${{ env.release_tag }}, ${{ env.release_date }}
           draft: true
           prerelease: false
           body_path: .github/release_body_template.md
