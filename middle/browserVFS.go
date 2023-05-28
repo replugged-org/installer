@@ -20,7 +20,7 @@ func BrowserVFSLocationReal(vfsPath string) bool {
 }
 
 func BrowserVFSList(vfsPath string) []BrowserLocation {
-	vfsEntries := []BrowserLocation{}
+	var vfsEntries []BrowserLocation
 
 	if vfsPath == BrowserVFSPathDefault {
 		if runtime.GOOS == "windows" {

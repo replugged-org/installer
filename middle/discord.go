@@ -1,6 +1,6 @@
 package middle
 
-// Authored by Creatable and 20kdc
+// Authored by toonlink and 20kdc
 
 import (
 	"errors"

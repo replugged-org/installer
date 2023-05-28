@@ -56,7 +56,7 @@ func GetDataPath() string {
 	if IsLinux() {
 		userData := GetUserData()
 		if userData.Name != "" {
-			usr := strings.TrimSuffix(string(userData.Name), "\n")
+			usr := strings.TrimSuffix(userData.Name, "\n")
 			return fmt.Sprintf("/home/%s/.local/share/replugged-installer", usr)
 		} else {
 			return ""

@@ -43,7 +43,7 @@ func (app *UpApplication) ShowPreface() {
 }
 
 func (app *UpApplication) ShowInstanceFinder(locations []middle.DiscordInstance) {
-	suggestSlots := []framework.FlexboxSlot{}
+	var suggestSlots []framework.FlexboxSlot
 	for _, location := range locations {
 		channel := location.Channel
 		path := location.Path

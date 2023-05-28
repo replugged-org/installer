@@ -11,9 +11,17 @@ func (app *UpApplication) ShowCredits(back framework.ButtonBehavior) {
 			Text:    "Alyxia Sother",
 			Subtext: "Developer of the Replugged Installer.",
 		},
+		{
+			Text:    "toonlink",
+			Subtext: "Wrote the Discord finder code",
+		},
+		{
+			Text:    "20kdc",
+			Subtext: "Fixed up Discord detection from VFS",
+		},
 	}
 
-	listSlots := []framework.FlexboxSlot{}
+	var listSlots []framework.FlexboxSlot
 	for _, item := range items {
 		listSlots = append(listSlots, framework.FlexboxSlot{
 			Element: design.ListItem(item),

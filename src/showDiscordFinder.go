@@ -16,7 +16,7 @@ func (app *UpApplication) ShowDiscordFinder(back framework.ButtonBehavior, vfsPa
 		progress("Scanning to find all of the context in:\n" + vfsPath)
 		vfsList = middle.DiscordFinderVFSList(vfsPath)
 	}, func() {
-		items := []design.ListItemDetails{}
+		var items []design.ListItemDetails
 
 		for _, v := range vfsList {
 			thisLocation := v.Location
