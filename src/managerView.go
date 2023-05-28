@@ -2,15 +2,13 @@ package src
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
-	"path"
+	"github.com/replugged-org/installer/middle"
 	"path/filepath"
 	"strings"
-	"time"
 
-	"github.com/go-git/go-git/v5"
-	"github.com/replugged-org/installer/middle"
+	"os"
+	"path"
+	"time"
 
 	"github.com/lexisother/frenyard"
 	"github.com/lexisother/frenyard/design"
@@ -23,7 +21,7 @@ func (app *UpApplication) ShowManagerView(installed bool, back framework.ButtonB
 		showInstallScreen(app)
 	} else {
 		showUninstallScreen(app, back)
-	} 
+	}
 }
 
 func showInstallScreen(app *UpApplication) {
@@ -36,66 +34,58 @@ func showInstallScreen(app *UpApplication) {
 		log := "--Log started at " + time.Now().Format(time.RFC1123) + " --"
 		errorLog := "Errors:"
 		app.ShowWaiter("Installing...", func(progress func(string)) {
+			// Why these loose error declarations? If you put a goto above a variable declaration, the compiler will error.
+			// As I've been told by 2767mr:
+			//   "You cannot jump over variable declarations.
+			//   Goto statements were primarily intended for generated code because they are useful but hard to understand.
+			//   If you really want it, you will need to move your variable declarations above the goto and the label."
+			var downloadErr error
+			var renameErr error
+			var resources os.FileInfo
+			var index *os.File
+			var packageJson *os.File
+
+			asarPath := path.Join(middle.GetDataPath(), "replugged.asar")
+
+			log += "\nDownload replugged.asar..."
+			progress(log)
+			downloadErr = middle.DownloadFile(asarPath, "https://github.com/replugged-org/replugged/releases/latest/download/replugged.asar")
+			if downloadErr != nil {
+				errorLog += "\n  Downloading replugged.asar: " + downloadErr.Error()
+				goto FinishEarly
+			}
+
+			log += "\nRenaming app.asar..."
+			progress(log)
+			renameErr = os.Rename(path.Join(app.Config.DiscordPath, "app.asar"), path.Join(app.Config.DiscordPath, "app.orig.asar"))
+			if renameErr != nil {
+				errorLog += "\n  Renaming app.asar to app.orig.asar: " + renameErr.Error()
+				goto FinishEarly
+			}
+
 			log += "\nChecking for app folder..."
 			progress(log)
-			resources, _ := os.Stat(path.Join(app.Config.DiscordPath, "app"))
+			resources, _ = os.Stat(path.Join(app.Config.DiscordPath, "app"))
 			if resources != nil {
-				log += "\nRenaming app folder..."
-				progress(log)
-				os.Rename(path.Join(app.Config.DiscordPath, "app"), path.Join(app.Config.DiscordPath, "plug"))
+				errorLog += "\n  App folder already exists! Is another mod currently installed?"
+				goto FinishEarly
 			}
+
 			os.Mkdir(path.Join(app.Config.DiscordPath, "app"), 0755)
-			index, _ := os.Create(path.Join(app.Config.DiscordPath, "app/index.js"))
-			packageJson, _ := os.Create(path.Join(app.Config.DiscordPath, "app/package.json"))
+			index, _ = os.Create(path.Join(app.Config.DiscordPath, "app/index.js"))
+			packageJson, _ = os.Create(path.Join(app.Config.DiscordPath, "app/package.json"))
 			log += "\nWriting package.json..."
 			progress(log)
-			packageJson.WriteString(`{"name": "plug","main":"index.js"}`)
+			packageJson.WriteString(`{"name": "discord","main":"index.js"}`)
 			log += "\nWriting index.js..."
 			progress(log)
-			index.WriteString(fmt.Sprintf("require('%s')", strings.ReplaceAll(filepath.FromSlash(middle.GetDataPath()+"/repository/src/patcher.js"), "\\", "\\\\")))
+			index.WriteString(fmt.Sprintf("require('%s')", strings.ReplaceAll(filepath.FromSlash(asarPath), "\\", "\\\\")))
 
-			log += "\nChecking for Replugged folder..."
-			progress(log)
-			replugged, _ := os.Stat(path.Join(middle.GetDataPath(), "repository"))
-			if replugged == nil {
-				log += "\nReplugged not found. Cloning Replugged..."
-				progress(log)
-				_, err := git.PlainClone(path.Join(middle.GetDataPath(), "repository"), false, &git.CloneOptions{
-					URL:   "https://github.com/replugged-org/replugged",
-					Depth: 1,
-				})
-
-				// We are running as root, so fix the file permissions
-				if middle.IsLinux() {
-					userData := middle.GetUserData()
-					middle.ChownR(path.Join(middle.GetDataPath(), "repository"), userData.Ruid, userData.Rgid)
-				}
-
-				if err != nil {
-					errorLog += "\n  cloning Replugged: " + err.Error()
-				}
-			}
-
-			replugged, _ = os.Stat(path.Join(middle.GetDataPath(), "repository"))
-			if replugged != nil {
-				if depFolder, _ := os.Stat(path.Join(middle.GetDataPath(), "repository", "node_modules")); depFolder == nil {
-					log += "\nInstalling dependencies... (this can take a while)"
-					progress(log)
-
-					cmd := exec.Command("npm", "i")
-					cmd.Dir = path.Join(middle.GetDataPath(), "repository")
-					_, err := cmd.Output()
-					if err != nil {
-						errorLog += "\n  installing dependencies: " + err.Error()
-						return
-					}
-				}
-			}
-
+		FinishEarly:
 			if errorLog != "Errors:" {
-				log += "\n-- Errors occurred during installation. --\n" + errorLog
+				log += "\n\n-- Errors occurred during installation. --\n" + errorLog
 			} else {
-				log += "\n-- Complete; Restart your Discord client! --"
+				log += "\n\n-- Complete; Restart your Discord client! --"
 			}
 			progress(log)
 		}, func() {
@@ -113,7 +103,7 @@ func showInstallScreen(app *UpApplication) {
 
 func showUninstallScreen(app *UpApplication, back framework.ButtonBehavior) {
 	if _, err := os.Stat(path.Join(app.Config.DiscordPath, "app/plugged.txt")); err != nil {
-		app.MessageBox("Not installed!", "Replugged is not installed. Please install it before trying to remove it.", func () {
+		app.MessageBox("Not installed!", "Replugged is not installed. Please install it before trying to remove it.", func() {
 			app.CachedPrimaryView = nil
 			app.ShowPrimaryView()
 		})
@@ -126,7 +116,7 @@ func showUninstallScreen(app *UpApplication, back framework.ButtonBehavior) {
 				Element: framework.NewUILabelPtr(integration.NewTextTypeChunk("Are you sure you want to uninstall Replugged?", design.GlobalFont), 0xFFFFFFFF, 0, frenyard.Alignment2i{}),
 			},
 			{
-				Basis: frenyard.Scale(design.DesignScale, 32),
+				Basis:  frenyard.Scale(design.DesignScale, 32),
 				Shrink: 1,
 			},
 			{
@@ -143,23 +133,27 @@ func showUninstallScreen(app *UpApplication, back framework.ButtonBehavior) {
 									log := "-- Log started at " + time.Now().Format(time.RFC1123) + " --"
 									errorLog := "Errors:"
 									app.ShowWaiter("Uninstalling...", func(progress func(string)) {
+										// Same reason as before...
+										var removeErr error
+										var renameErr error
+
 										log += "\nDeleting the app directory..."
 										progress(log)
-										err := os.RemoveAll(path.Join(app.Config.DiscordPath, "app"))
-										if err != nil {
-											errorLog += "\n  failed deleting app directory: " + err.Error()
-										}
-										log += "\nDone! Checking if plug directory exists..."
-										progress(log)
-										if _, err := os.Stat(path.Join(app.Config.DiscordPath, "plug")); err == nil {
-											log += "\nRestoring the plug directory..."
-											progress(log)
-											err := os.Rename(path.Join(app.Config.DiscordPath, "plug"), path.Join(app.Config.DiscordPath, "app"))
-											if err != nil {
-												errorLog += "\n  failed restoring plug directory: " + err.Error()
-											} 
+										removeErr = os.RemoveAll(path.Join(app.Config.DiscordPath, "app"))
+										if removeErr != nil {
+											errorLog += "\n  failed deleting app directory: " + removeErr.Error()
+											goto FinishEarly
 										}
 
+										log += "\nRename app.orig.asar to app.asar..."
+										progress(log)
+										renameErr = os.Rename(path.Join(app.Config.DiscordPath, "app.orig.asar"), path.Join(app.Config.DiscordPath, "app.asar"))
+										if renameErr != nil {
+											errorLog += "\n  Renaming app.orig.asar to app.asar: " + renameErr.Error()
+											goto FinishEarly
+										}
+
+									FinishEarly:
 										if errorLog != "Errors:" {
 											log += "\n-- Errors occurred during installation. --\n" + errorLog
 										} else {
@@ -196,10 +190,10 @@ func showUninstallScreen(app *UpApplication, back framework.ButtonBehavior) {
 
 		app.Teleport(design.LayoutDocument(design.Header{
 			Title: "Replugged",
-			Back: back,
+			Back:  back,
 		}, framework.NewUIFlexboxContainerPtr(framework.FlexboxContainer{
 			DirVertical: true,
-			Slots: listSlots,
+			Slots:       listSlots,
 		}), true))
 	}
 }
