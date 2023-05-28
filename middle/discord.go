@@ -99,10 +99,14 @@ func NewDiscordInstance(path string) (*DiscordInstance, error) {
 		Channel: "Unknown",
 	}
 
-	if _, err := os.Stat(filepath.Join(instance.Path, "app.asar")); err == nil {
+	_, appErr := os.Stat(filepath.Join(instance.Path, "app.asar"))
+	_, appOrigErr := os.Stat(filepath.Join(instance.Path, "app.orig.asar"))
+	_, _appErr := os.Stat(filepath.Join(instance.Path, "_app.asar"))
+
+	if appErr == nil || appOrigErr == nil || _appErr == nil {
 		return &instance, nil
 	} else {
-		return nil, errors.New("Instance doesn't exist")
+		return nil, errors.New("instance doesn't exist")
 	}
 }
 

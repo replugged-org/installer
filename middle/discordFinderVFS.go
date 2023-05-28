@@ -1,6 +1,6 @@
 package middle
 
-// A BrowserLocation with the output of CheckDiscordLocation.
+// FinderLocation is a BrowserLocation with the output of CheckDiscordLocation.
 // The CCUpdaterUI code put the necessary information into GameInstance but this tool doesn't do that.
 // So we use this instead to get the same data.
 type FinderLocation struct {
@@ -9,7 +9,7 @@ type FinderLocation struct {
 }
 
 func DiscordFinderVFSList(vfsPath string) []FinderLocation {
-	vfsEntries := []FinderLocation{}
+	var vfsEntries []FinderLocation
 	for _, fi := range BrowserVFSList(vfsPath) {
 		if fi.Dir {
 			finderLocation := FinderLocation{

@@ -29,10 +29,11 @@ type UserData struct {
 	Ruid int
 	Rgid int
 }
+
 // GetUserData fetches chown-required userdata on Linux
 func GetUserData() *UserData {
 	cmd := exec.Command("logname")
-	outName, _:= cmd.Output()
+	outName, _ := cmd.Output()
 	name := strings.TrimSuffix(string(outName), "\n")
 
 	cmd = exec.Command("id", "-u", name)
@@ -48,6 +49,7 @@ func GetUserData() *UserData {
 	return &UserData{name, ruid, rgid}
 }
 
+// GetDataPath returns the path to the installer's data path.
 func GetDataPath() string {
 	// We LOVE platform-specific hacks.
 	// Fixes the running-as-root $HOME issue.
