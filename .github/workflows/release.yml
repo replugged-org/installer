@@ -88,9 +88,8 @@ jobs:
         run: |
           mkdir -p Installer.app/Contents/MacOS
           mkdir -p Installer.app/Contents/Resources
-          wget https://public.alyxia.dev/replugged/Info.plist -O Installer.app/Contents/Info.plist
+          wget https://public.alyxia.dev/frenyard-macos-data/replugged-installer.Info.plist -O Installer.app/Contents/Info.plist
           mv installer Installer.app/Contents/MacOS/installer
-          wget https://public.alyxia.dev/replugged/icon.icns -O Installer.app/Contents/Resources/icon.icns
           zip -r Installer.MacOS.zip Installer.app
           mv Installer.MacOS.zip installer.MacOS.zip
 
