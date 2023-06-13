@@ -49,7 +49,7 @@ func showInstallScreen(app *UpApplication) {
 
 			log += "\nDownload replugged.asar..."
 			progress(log)
-			downloadErr = middle.DownloadFile(asarPath, "https://github.com/replugged-org/replugged/releases/latest/download/replugged.asar")
+			downloadErr = middle.DownloadFile(asarPath, "https://replugged.dev/api/v1/store/dev.replugged.Replugged.asar")
 			if downloadErr != nil {
 				errorLog += "\n  Downloading replugged.asar: " + downloadErr.Error()
 				goto FinishEarly
