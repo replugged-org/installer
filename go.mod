@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/ProtonMail/go-appdir v1.1.0
-	github.com/lexisother/frenyard v0.0.0-20211013151416-ef4fefd2504e
+	github.com/lexisother/frenyard v1.2.1
 )
 
 require (
