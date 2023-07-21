@@ -9,6 +9,13 @@ import (
 	"runtime"
 )
 
+func If[T any](cond bool, vtrue, vfalse T) T {
+	if cond {
+		return vtrue
+	}
+	return vfalse
+}
+
 func IsLinux() bool {
 	if runtime.GOOS != "darwin" && runtime.GOOS != "windows" {
 		return true

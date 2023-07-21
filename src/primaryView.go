@@ -13,13 +13,6 @@ import (
 	"github.com/lexisother/frenyard/integration"
 )
 
-func If[T any](cond bool, vtrue, vfalse T) T {
-	if cond {
-		return vtrue
-	}
-	return vfalse
-}
-
 func (app *UpApplication) ShowPrimaryView() {
 	warnings := middle.FindWarnings()
 	npm := true
@@ -68,7 +61,7 @@ func (app *UpApplication) ShowPrimaryView() {
 						Grow: 1,
 					},
 					{
-						Element: design.ButtonAction(If(npm, design.ThemeOkActionButton, design.ThemeImpossibleActionButton), "Install", func() {
+						Element: design.ButtonAction(middle.If(npm, design.ThemeOkActionButton, design.ThemeImpossibleActionButton), "Install", func() {
 							if npm {
 								app.GSRightwards()
 								app.ShowManagerView(false, func() {
@@ -84,7 +77,7 @@ func (app *UpApplication) ShowPrimaryView() {
 						Shrink: 1,
 					},
 					{
-						Element: design.ButtonAction(If(npm, design.ThemeRemoveActionButton, design.ThemeImpossibleActionButton), "Uninstall", func() {
+						Element: design.ButtonAction(middle.If(npm, design.ThemeRemoveActionButton, design.ThemeImpossibleActionButton), "Uninstall", func() {
 							if npm {
 								app.GSRightwards()
 								app.ShowManagerView(true, func() {
