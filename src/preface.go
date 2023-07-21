@@ -92,7 +92,7 @@ func (app *UpApplication) ShowInstanceFinder(locations []middle.DiscordInstance)
 			},
 			{
 				Element: design.ButtonBar([]framework.UILayoutElement{
-					design.ButtonAction(design.ThemeOkActionButton, "LOCATE MANUALLY", func() {
+					design.ButtonAction(design.ThemePageActionButton, "LOCATE MANUALLY", func() {
 						app.GSDownwards()
 						app.ShowDiscordFinder(func() {
 							app.GSUpwards()
