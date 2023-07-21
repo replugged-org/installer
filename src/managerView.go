@@ -25,7 +25,9 @@ func (app *UpApplication) ShowManagerView(installed bool, back framework.ButtonB
 }
 
 func showInstallScreen(app *UpApplication) {
-	if _, err := os.Stat(path.Join(app.Config.DiscordPath, "app/plugged.txt")); err == nil {
+	_, txtErr := os.Stat(path.Join(app.Config.DiscordPath, "app/plugged.txt"))
+	_, origErr := os.Stat(path.Join(app.Config.DiscordPath, "app.orig.asar"))
+	if txtErr == nil || origErr == nil {
 		app.MessageBox("Already installed!", "Replugged is already installed. Please restart your client.", func() {
 			app.CachedPrimaryView = nil
 			app.ShowPrimaryView()
@@ -92,7 +94,7 @@ func showInstallScreen(app *UpApplication) {
 			pluggedFile, _ := os.Create(path.Join(app.Config.DiscordPath, "app/plugged.txt"))
 			pluggedFile.WriteString("this file was added to indicate that replugged is installed here.")
 			app.GSInstant()
-			app.MessageBox("Install Complete", log, func() {
+			app.MessageBox(middle.If(errorLog != "Errors:", "Install Failed", "Install Complete"), log, func() {
 				app.CachedPrimaryView = nil
 				app.GSLeftwards()
 				app.ShowPrimaryView()
