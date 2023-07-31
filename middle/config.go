@@ -51,20 +51,20 @@ func GetUserData() *UserData {
 
 // GetDataPath returns the path to the installer's data path.
 func GetDataPath() string {
+	dirs := appdir.New("replugged-installer")
+	data := dirs.UserData()
+
 	// We LOVE platform-specific hacks.
 	// Fixes the running-as-root $HOME issue.
 	if IsLinux() {
 		userData := GetUserData()
 		if userData.Name != "" {
 			usr := strings.TrimSuffix(userData.Name, "\n")
-			return fmt.Sprintf("/home/%s/.local/share/replugged-installer", usr)
+			data = fmt.Sprintf("/home/%s/.local/share/replugged-installer", usr)
 		} else {
 			return ""
 		}
 	}
-
-	dirs := appdir.New("replugged-installer")
-	data := dirs.UserData()
 
 	if err := os.MkdirAll(data, 0755); err != nil {
 		panic(err)
